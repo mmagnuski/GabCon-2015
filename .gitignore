@@ -1,0 +1,5 @@
+# do not care for pyc files
+*.pyc
+
+# ipynb checkpoints should not be tracked too:
+.ipnb_checkpoints\*

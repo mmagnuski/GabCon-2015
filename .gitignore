@@ -2,4 +2,5 @@
 *.pyc
 
 # ipynb checkpoints should not be tracked too:
-.ipnb_checkpoints\*
+.ipynb_checkpoints\*
+*\.ipynb_checkpoints\*

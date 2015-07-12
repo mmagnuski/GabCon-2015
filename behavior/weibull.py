@@ -14,6 +14,7 @@
 from scipy.optimize import minimize
 from matplotlib import pyplot as plt
 import numpy as np
+import os
 
 
 class Weibull:
@@ -32,7 +33,7 @@ class Weibull:
 	def __init__(self, x, y):
 		self.x = x
 		# y is 0 or 1 - this is problematic for log
-		self.orig_y = y.copy()
+		self.orig_y = y # CHECK ensure that this is a copy!
 		self.y = self.drag(y)
 
 	def _fun(self, params, x, corr_at_thresh = 0.75, chance_level = 0.5):
@@ -101,11 +102,9 @@ class Weibull:
 
 
 def fit_weibull(db, i):
-#	if i < 40:
-#		idx = np.array(np.linspace(1, i, num = i), dtype = 'int')
-#	else:
-#		idx = np.array(np.linspace(i-40+1, i, num = 40), dtype = 'int')
-	idx = np.array(np.linspace(1, i, num = i), dtype = 'int')
+
+	take_last = min([i-15, 60])
+	idx = np.array(np.arange(i-take_last+1, i+1), dtype = 'int')
 	ifcorr = db.loc[idx, 'ifcorrect'].values.astype('int')
 	opacit = db.loc[idx, 'opacity'].values.astype('float')
 
@@ -114,26 +113,6 @@ def fit_weibull(db, i):
 	w = Weibull(opacit[notnan], ifcorr[notnan])
 	w.fit([1.0, 1.0])
 	return w
-
-
-def correct_Weibull_fit(w, exp, newopac):
-	# TODO this needs checking, removing duplicates and testing
-	if newopac[1] < 0.01 or newopac[1] <= newopac[0] or w.params[0] < 0 \
-		or newopac[0] > 1.0:
-
-		set_opacity_if_fit_fails(w.orig_y, exp)
-	else:
-		exp['opacity'] = newopac
-
-	# additional contrast checks
-	if exp['opacity'][1] > 1.0:
-		exp['opacity'][1] = 1.0
-	if exp['opacity'][0] < 0.01:
-		exp['opacity'][0] = 0.01
-	if exp['opacity'][0] > exp['opacity'][1]:
-		exp['opacity'][0] = exp['opacity'][1]/2
-
-	return exp
 
 
 def set_opacity_if_fit_fails(corr, exp):
@@ -145,3 +124,33 @@ def set_opacity_if_fit_fails(corr, exp):
 	elif mean_corr < 0.6:
 		exp['opacity'][0] = np.min([exp['opacity'][1]*2, 0.8])
 		exp['opacity'][1] = np.min([exp['opacity'][1]*2, 1.0])
+
+
+def correct_Weibull_fit(w, exp, newopac):
+	# log weibul fit and contrast
+	logs = []
+	logs.append( 'Weibull params:  {} {}'.format( *w.params ) )
+	logs.append( 'Contrast limits set to:  {0} - {1}'.format(*newopac) )
+
+	# TODO this needs checking, removing duplicates and testing
+	if newopac[1] < 0.005 or newopac[1] <= newopac[0] or w.params[0] < 0 \
+		or newopac[1] < 0.01 or newopac[0] > 1.0:
+
+		set_opacity_if_fit_fails(w.orig_y, exp)
+		logs.append( 'Weibull fit failed, contrast set to:  {0} - {1}'.format(*exp['opacity']) )
+	else:
+		exp['opacity'] = newopac
+
+	# additional contrast checks
+	precheck_opacity = list(exp['opacity'])
+	if exp['opacity'][1] > 1.0:
+		exp['opacity'][1] = 1.0
+	if exp['opacity'][0] < 0.01:
+		exp['opacity'][0] = 0.01
+	if exp['opacity'][0] > exp['opacity'][1]:
+		exp['opacity'][0] = exp['opacity'][1]/2
+
+	if not (exp['opacity'] == precheck_opacity):
+		logs.append('Opacity limits corrected to:  {0} - {1}'.format(*exp['opacity']))
+
+	return exp, logs

@@ -1,0 +1,16 @@
+4.8682 	WARNING 	User requested fullscreen with size [800 600], but screen is actually [1920, 1080]. Using actual size
+528.6190 	WARNING 	Weibull params:  18.7963480413 0.841270001797
+528.6190 	WARNING 	Contrast limits set to:  0.76103515625 - 0.87978515625
+578.5423 	WARNING 	Weibull params:  9.22088411376 0.782814143805
+578.5423 	WARNING 	Contrast limits set to:  0.63818359375 - 0.85771484375
+621.1924 	WARNING 	Weibull params:  8.15590745724 0.786164566541
+621.1924 	WARNING 	Contrast limits set to:  0.6240234375 - 0.8716796875
+657.7038 	WARNING 	Weibull params:  4.11669179003 0.904373296702
+657.7038 	WARNING 	Contrast limits set to:  0.572265625 - 1.109765625
+657.7038 	WARNING 	Opacity limits corrected to:  0.572265625 - 1.0
+691.8962 	WARNING 	Weibull params:  2.8046422685 1.00986429453
+691.8962 	WARNING 	Contrast limits set to:  0.51591796875 - 1.363671875
+691.8962 	WARNING 	Opacity limits corrected to:  0.51591796875 - 1.0
+729.0445 	WARNING 	Weibull params:  1.10431671132 0.767949774827
+729.0445 	WARNING 	Contrast limits set to:  0.139453125 - 1.64677734375
+729.0445 	WARNING 	Opacity limits corrected to:  0.139453125 - 1.0

@@ -64,12 +64,12 @@ class Weibull:
 	def inverse(self, corrinput):
 		invfun = lambda cntr: (corrinput - self._fun(self.params, cntr))**2
 		# optimize with respect to correctness
-		return minimize(invfun, 1.0, method='Nelder-Mead')['x'][0]
+		return minimize(invfun, self.params[1], method='Nelder-Mead')['x'][0]
 	
 	def _dist2corr(self, corr):
 		return map(self.inverse, corr)
 	
-	def plot(self, pth=''):
+	def plot(self, pth='', points=True, line=True):
 		# get predicted data
 		numpnts = 1000
 		x = np.linspace(0., 1., num = numpnts)
@@ -79,15 +79,19 @@ class Weibull:
 		l = len(self.x)
 		yrnd = np.random.uniform(-0.05, 0.05, l)
 
-		# plot
-		plt.hold(True)
-		plt.grid()
-		plt.plot(x, y, zorder = 1)
-		plt.scatter(self.x, self.orig_y + yrnd, alpha=0.6, lw=0, c=[0.3, 0.3, 0.3])
+		# plot setup
+		plt.hold(True) # just in case (matlab habit)
+		plt.grid(True)
+
+		# plot line
+		if line:
+			plt.plot(x, y, zorder = 1)
+		if points:
+			plt.scatter(self.x, self.orig_y + yrnd, alpha=0.6, lw=0, c=[0.3, 0.3, 0.3])
 
 		# aesthetics
 		maxval = np.max(self.x)
-		uplim = np.round(maxval + 0.5, decimals = 1)
+		uplim = min([1.0, np.round(maxval + 0.5, decimals = 1)])
 		plt.xlim([0.0, uplim])
 		plt.ylim([-0.1, 1.1])
 		plt.xlabel('stimulus intensity')
@@ -102,7 +106,6 @@ class Weibull:
 
 
 def fit_weibull(db, i):
-
 	take_last = min([i-15, 60])
 	idx = np.array(np.arange(i-take_last+1, i+1), dtype = 'int')
 	ifcorr = db.loc[idx, 'ifcorrect'].values.astype('int')
@@ -133,7 +136,7 @@ def correct_Weibull_fit(w, exp, newopac):
 	logs.append( 'Contrast limits set to:  {0} - {1}'.format(*newopac) )
 
 	# TODO this needs checking, removing duplicates and testing
-	if newopac[1] < 0.005 or newopac[1] <= newopac[0] or w.params[0] < 0 \
+	if newopac[1] <= newopac[0] or w.params[0] < 0 \
 		or newopac[1] < 0.01 or newopac[0] > 1.0:
 
 		set_opacity_if_fit_fails(w.orig_y, exp)
@@ -154,3 +157,26 @@ def correct_Weibull_fit(w, exp, newopac):
 		logs.append('Opacity limits corrected to:  {0} - {1}'.format(*exp['opacity']))
 
 	return exp, logs
+
+
+# for interactive plotting:
+# -------------------------
+def fitw(df, ind):
+    x = df.loc[ind, 'opacity']
+    y = df.loc[ind, 'ifcorrect']
+    w = Weibull(x, y)
+    w.fit([1., 1.])
+    return w
+
+
+def idx_at(fit_num):
+    current_trial = 45 + (fit_num-1)*10
+    take_last = min([current_trial-15, 60])
+    idx = np.array(np.arange(current_trial-take_last+1,
+                             current_trial+1), dtype = 'int')
+    return idx
+
+
+def wfit_at(df, fit_num):
+    idx = idx_at(fit_num)
+    return fit_weibull(df, idx[-1])
